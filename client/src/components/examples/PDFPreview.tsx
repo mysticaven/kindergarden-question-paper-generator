@@ -17,5 +17,15 @@ export default function PDFPreviewExample() {
     }
   ];
 
-  return <PDFPreview questions={mockQuestions} />;
+  const mockExamDetails = {
+    schoolName: 'Happy Kindergarten School',
+    examTitle: 'Monthly Examination',
+    grade: 'KG (1 & 2)',
+    includeStudentName: true,
+    includeDate: true,
+    includeSchool: false,
+    includeTeacher: false,
+  };
+
+  return <PDFPreview questions={mockQuestions} examDetails={mockExamDetails} />;
 }

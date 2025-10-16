@@ -1,126 +1,82 @@
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/Hero";
 import CurriculumInput from "@/components/CurriculumInput";
 import QuestionTypeSelector from "@/components/QuestionTypeSelector";
 import QuestionCountSelector from "@/components/QuestionCountSelector";
+import ExamDetailsForm from "@/components/ExamDetailsForm";
 import QuestionCard from "@/components/QuestionCard";
 import type { Question } from "@/components/QuestionCard";
 import GenerationProgress from "@/components/GenerationProgress";
 import PDFPreview from "@/components/PDFPreview";
 import ThemeToggle from "@/components/ThemeToggle";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
+import type { ExamDetails } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
+  const { toast } = useToast();
+  const [step, setStep] = useState(1);
   const [curriculum, setCurriculum] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["counting", "comparison"]);
   const [questionCount, setQuestionCount] = useState(10);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [examDetails, setExamDetails] = useState<ExamDetails>({
+    schoolName: "",
+    examTitle: "Monthly Examination",
+    includeStudentName: true,
+    includeDate: true,
+    includeSchool: false,
+    includeTeacher: false,
+  });
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [generationProgress, setGenerationProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
 
-  //todo: remove mock functionality
-  const mockQuestions: Question[] = [
-    {
-      id: '1',
-      type: 'counting',
-      question: 'How many mangoes can you count in this picture?',
-      imageUrl: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=400&fit=crop'
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/generate-questions", {
+        method: "POST",
+        body: JSON.stringify({
+          curriculum,
+          questionTypes: selectedTypes,
+          questionCount,
+          examDetails,
+        }),
+      });
+      return response;
     },
-    {
-      id: '2',
-      type: 'comparison',
-      question: 'Which apple is bigger? Circle the bigger one.',
-      imageUrl: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop'
+    onSuccess: (data: any) => {
+      setQuestions(data.paper.questions);
+      setShowPreview(true);
+      toast({
+        title: "Success!",
+        description: `Generated ${data.paper.questions.length} questions successfully.`,
+      });
     },
-    {
-      id: '3',
-      type: 'shapes',
-      question: 'How many circles can you find in this picture?',
-      imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=400&fit=crop'
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate questions. Please try again.",
+        variant: "destructive",
+      });
     },
-    {
-      id: '4',
-      type: 'counting',
-      question: 'Count the bananas and write the number.',
-      imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop'
-    },
-    {
-      id: '5',
-      type: 'comparison',
-      question: 'Which tree is taller? Point to the taller tree.',
-      imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop'
-    },
-    {
-      id: '6',
-      type: 'colors',
-      question: 'What color are these strawberries?',
-      imageUrl: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=400&fit=crop'
-    },
-    {
-      id: '7',
-      type: 'counting',
-      question: 'How many flowers do you see?',
-      imageUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop'
-    },
-    {
-      id: '8',
-      type: 'comparison',
-      question: 'Which ball is smaller?',
-      imageUrl: 'https://images.unsplash.com/photo-1511067007398-9e756e4d1b71?w=400&h=400&fit=crop'
-    },
-    {
-      id: '9',
-      type: 'shapes',
-      question: 'Circle all the triangular shapes you can find.',
-      imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400&h=400&fit=crop'
-    },
-    {
-      id: '10',
-      type: 'counting',
-      question: 'Count the butterflies in the garden.',
-      imageUrl: 'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=400&h=400&fit=crop'
-    }
-  ];
+  });
 
   const handleGenerate = () => {
-    setIsGenerating(true);
-    setGenerationProgress(0);
-    setShowPreview(false);
-    
-    // Simulate generation progress
-    const interval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= questionCount) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          setQuestions(mockQuestions.slice(0, questionCount));
-          return questionCount;
-        }
-        return prev + 1;
-      });
-    }, 500);
+    generateMutation.mutate();
   };
 
   const handleRegenerate = (id: string) => {
     console.log('Regenerating question:', id);
-    setQuestions(prevQuestions =>
-      prevQuestions.map(q =>
-        q.id === id ? { ...q, isGenerating: true } : q
-      )
-    );
-    
-    setTimeout(() => {
-      setQuestions(prevQuestions =>
-        prevQuestions.map(q =>
-          q.id === id ? { ...q, isGenerating: false } : q
-        )
-      );
-    }, 2000);
+    toast({
+      title: "Feature coming soon",
+      description: "Individual question regeneration will be available soon.",
+    });
   };
 
-  const canGenerate = curriculum.trim().length > 0 && selectedTypes.length > 0 && questionCount > 0;
+  const canProceedToStep2 = curriculum.trim().length > 10 && selectedTypes.length > 0 && questionCount > 0;
+  const canGenerate = canProceedToStep2 && examDetails.schoolName.trim().length > 0 && examDetails.examTitle.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,52 +92,112 @@ export default function Home() {
 
         {!showPreview ? (
           <>
-            <section className="max-w-4xl mx-auto space-y-8">
-              <CurriculumInput value={curriculum} onChange={setCurriculum} />
-              
-              <QuestionTypeSelector 
-                selected={selectedTypes} 
-                onChange={setSelectedTypes} 
-              />
-              
-              <QuestionCountSelector 
-                count={questionCount} 
-                onChange={setQuestionCount} 
-              />
-
-              <div className="flex justify-center pt-4">
-                <Button
-                  size="lg"
-                  onClick={handleGenerate}
-                  disabled={!canGenerate || isGenerating}
-                  className="px-8 py-6 text-lg rounded-full shadow-xl"
-                  data-testid="button-generate-paper"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  {isGenerating ? 'Generating...' : 'Generate Question Paper'}
-                </Button>
+            {/* Progress Steps */}
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-center gap-4 mb-8">
+                <div className={`flex items-center gap-2 ${step === 1 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    1
+                  </div>
+                  <span className="hidden sm:inline">Curriculum & Questions</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <div className={`flex items-center gap-2 ${step === 2 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    2
+                  </div>
+                  <span className="hidden sm:inline">Exam Details</span>
+                </div>
               </div>
-            </section>
+            </div>
 
-            {isGenerating && (
-              <div className="max-w-4xl mx-auto py-8">
-                <GenerationProgress current={generationProgress} total={questionCount} />
-              </div>
-            )}
+            {step === 1 ? (
+              <section className="max-w-4xl mx-auto space-y-8">
+                <CurriculumInput value={curriculum} onChange={setCurriculum} />
+                
+                <QuestionTypeSelector 
+                  selected={selectedTypes} 
+                  onChange={setSelectedTypes} 
+                />
+                
+                <QuestionCountSelector 
+                  count={questionCount} 
+                  onChange={setQuestionCount} 
+                />
 
-            {questions.length > 0 && !isGenerating && (
-              <section className="space-y-6">
-                <div className="flex items-center justify-between max-w-6xl mx-auto">
-                  <h2 className="text-2xl font-display font-bold">Generated Questions</h2>
-                  <Button 
-                    onClick={() => setShowPreview(true)}
-                    data-testid="button-view-preview"
+                <div className="flex justify-center pt-4">
+                  <Button
+                    size="lg"
+                    onClick={() => setStep(2)}
+                    disabled={!canProceedToStep2}
+                    className="px-8 py-4 text-lg rounded-full"
+                    data-testid="button-next-step"
                   >
-                    View PDF Preview
+                    Next: Exam Details
+                    <ChevronRight className="w-5 h-5 ml-2" />
                   </Button>
                 </div>
+              </section>
+            ) : (
+              <section className="max-w-4xl mx-auto space-y-8">
+                <ExamDetailsForm details={examDetails} onChange={setExamDetails} />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <div className="flex justify-center gap-4 pt-4">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setStep(1)}
+                    className="px-8 py-4 text-lg rounded-full"
+                    data-testid="button-back-step"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    Back
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={handleGenerate}
+                    disabled={!canGenerate || generateMutation.isPending}
+                    className="px-8 py-4 text-lg rounded-full shadow-xl"
+                    data-testid="button-generate-paper"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    {generateMutation.isPending ? 'Generating...' : 'Generate Question Paper'}
+                  </Button>
+                </div>
+              </section>
+            )}
+
+            {generateMutation.isPending && (
+              <div className="max-w-4xl mx-auto py-8">
+                <GenerationProgress current={5} total={questionCount} />
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  AI is creating questions and generating images... This may take a minute.
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <section className="max-w-6xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPreview(false)}
+                data-testid="button-back-to-edit"
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Back to Edit
+              </Button>
+              
+              {questions.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {questions.length} questions generated
+                </div>
+              )}
+            </div>
+
+            {questions.length > 0 && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {questions.map((question) => (
                     <QuestionCard
                       key={question.id}
@@ -190,21 +206,10 @@ export default function Home() {
                     />
                   ))}
                 </div>
-              </section>
+
+                <PDFPreview questions={questions} examDetails={examDetails} />
+              </>
             )}
-          </>
-        ) : (
-          <section className="max-w-6xl mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowPreview(false)}
-                data-testid="button-back-to-edit"
-              >
-                ← Back to Edit
-              </Button>
-            </div>
-            <PDFPreview questions={questions} />
           </section>
         )}
       </main>
