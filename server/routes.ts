@@ -41,7 +41,7 @@ Return a JSON array of questions with this format:
 Important: Return ONLY the JSON array, no other text.`;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -96,8 +96,25 @@ Important: Return ONLY the JSON array, no other text.`;
       const saved = await storage.saveQuestionPaper(questionPaper);
 
       res.json(saved);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating questions:", error);
+      
+      // Check for OpenAI quota/rate limit errors
+      if (error?.status === 429 || error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
+        return res.status(429).json({ 
+          error: "OpenAI API quota exceeded",
+          details: "Your OpenAI API key has insufficient quota or credits. Please check your OpenAI account billing at https://platform.openai.com/account/billing"
+        });
+      }
+
+      // Check for authentication errors
+      if (error?.status === 401 || error?.code === 'invalid_api_key') {
+        return res.status(401).json({ 
+          error: "Invalid OpenAI API key",
+          details: "Please check your OPENAI_API_KEY environment variable"
+        });
+      }
+      
       res.status(500).json({ 
         error: "Failed to generate questions",
         details: error instanceof Error ? error.message : "Unknown error"

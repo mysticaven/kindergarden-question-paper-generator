@@ -35,16 +35,13 @@ export default function Home() {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/generate-questions", {
-        method: "POST",
-        body: JSON.stringify({
-          curriculum,
-          questionTypes: selectedTypes,
-          questionCount,
-          examDetails,
-        }),
+      const response = await apiRequest("POST", "/api/generate-questions", {
+        curriculum,
+        questionTypes: selectedTypes,
+        questionCount,
+        examDetails,
       });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       setQuestions(data.paper.questions);
@@ -55,11 +52,23 @@ export default function Home() {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate questions. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error.message || "Failed to generate questions. Please try again.";
+      
+      // Check if it's a quota error
+      if (error.message?.includes("quota") || error.message?.includes("429")) {
+        toast({
+          title: "OpenAI Quota Exceeded",
+          description: "Your OpenAI API key has insufficient quota. Please add credits to your OpenAI account or check your billing settings.",
+          variant: "destructive",
+          duration: 10000,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     },
   });
 
