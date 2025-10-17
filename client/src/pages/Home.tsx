@@ -84,6 +84,14 @@ export default function Home() {
     });
   };
 
+  const handleImageUpload = (id: string, imageUrl: string) => {
+    setQuestions(prevQuestions => 
+      prevQuestions.map(q => 
+        q.id === id ? { ...q, imageUrl } : q
+      )
+    );
+  };
+
   const canProceedToStep2 = curriculum.trim().length > 10 && selectedTypes.length > 0 && questionCount > 0;
   const canGenerate = canProceedToStep2 && examDetails.schoolName.trim().length > 0 && examDetails.examTitle.trim().length > 0;
 
@@ -212,6 +220,7 @@ export default function Home() {
                       key={question.id}
                       question={question}
                       onRegenerate={handleRegenerate}
+                      onImageUpload={handleImageUpload}
                     />
                   ))}
                 </div>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Download, Printer, Share2 } from "lucide-react";
+import { Download, Printer, Share2, FileText } from "lucide-react";
+import { useState } from "react";
 import type { Question } from "./QuestionCard";
 import type { ExamDetails } from "@shared/schema";
 
@@ -9,9 +10,46 @@ interface PDFPreviewProps {
 }
 
 export default function PDFPreview({ questions, examDetails }: PDFPreviewProps) {
-  const handleDownload = () => {
+  const [isDownloadingWord, setIsDownloadingWord] = useState(false);
+
+  const handleDownloadPDF = () => {
     console.log('Download PDF clicked');
     window.print();
+  };
+
+  const handleDownloadWord = async () => {
+    setIsDownloadingWord(true);
+    try {
+      const response = await fetch('/api/export-word', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          examDetails,
+          questions,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Word document');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `exam-paper-${Date.now()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading Word document:', error);
+      alert('Failed to download Word document. Please try again.');
+    } finally {
+      setIsDownloadingWord(false);
+    }
   };
 
   const handlePrint = () => {
@@ -36,7 +74,17 @@ export default function PDFPreview({ questions, examDetails }: PDFPreviewProps) 
             <Printer className="w-4 h-4 mr-2" />
             Print
           </Button>
-          <Button size="sm" onClick={handleDownload} data-testid="button-download-pdf">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadWord} 
+            disabled={isDownloadingWord}
+            data-testid="button-download-word"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            {isDownloadingWord ? 'Generating...' : 'Download Word'}
+          </Button>
+          <Button size="sm" onClick={handleDownloadPDF} data-testid="button-download-pdf">
             <Download className="w-4 h-4 mr-2" />
             Download PDF
           </Button>

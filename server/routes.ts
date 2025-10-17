@@ -2,6 +2,46 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateQuestionsSchema } from "@shared/schema";
+import multer from "multer";
+import { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType, HeadingLevel } from "docx";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configure multer for image uploads
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
 
 // Free question templates for kindergarten
 const questionTemplates = {
@@ -94,6 +134,49 @@ function generateQuestionsFromTemplates(
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Serve uploaded images using express.static
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+  });
+  
+  const express = await import('express');
+  app.use('/uploads', express.default.static(uploadDir, { 
+    fallthrough: false,
+    index: false 
+  }));
+
+  // Multer error handling middleware
+  const multerErrorHandler = (error: any, req: any, res: any, next: any) => {
+    if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File size exceeds 5MB limit' });
+      }
+      return res.status(400).json({ error: `Upload error: ${error.message}` });
+    } else if (error) {
+      return res.status(400).json({ error: error.message || 'Invalid file upload' });
+    }
+    next();
+  };
+
+  // Image upload endpoint
+  app.post("/api/upload-image", upload.single('image'), multerErrorHandler, async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file uploaded" });
+      }
+
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ 
+        error: "Failed to upload image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   app.post("/api/generate-questions", async (req, res) => {
     try {
       const validatedData = generateQuestionsSchema.parse(req.body);
@@ -138,6 +221,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching question paper:", error);
       res.status(500).json({ error: "Failed to fetch question paper" });
+    }
+  });
+
+  // Word document export endpoint
+  app.post("/api/export-word", async (req, res) => {
+    try {
+      const { examDetails, questions } = req.body;
+
+      if (!examDetails || !questions) {
+        return res.status(400).json({ error: "Missing exam details or questions" });
+      }
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            // Header
+            new Paragraph({
+              text: examDetails.schoolName || "School Name",
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.CENTER,
+            }),
+            examDetails.schoolAddress ? new Paragraph({
+              text: examDetails.schoolAddress,
+              alignment: AlignmentType.CENTER,
+            }) : new Paragraph({ text: "" }),
+            new Paragraph({
+              text: examDetails.examTitle || "Exam Title",
+              heading: HeadingLevel.HEADING_2,
+              alignment: AlignmentType.CENTER,
+            }),
+            examDetails.grade ? new Paragraph({
+              text: examDetails.grade,
+              alignment: AlignmentType.CENTER,
+            }) : new Paragraph({ text: "" }),
+            examDetails.subject ? new Paragraph({
+              text: examDetails.subject,
+              alignment: AlignmentType.CENTER,
+            }) : new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }), // Empty line
+            
+            // Student info
+            examDetails.includeStudentName ? new Paragraph({
+              children: [
+                new TextRun({ text: "Name: ", bold: true }),
+                new TextRun({ text: "_".repeat(50) }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            examDetails.includeDate ? new Paragraph({
+              children: [
+                new TextRun({ text: "Date: ", bold: true }),
+                new TextRun({ text: "_".repeat(30) }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            new Paragraph({ text: "" }), // Empty line
+            
+            // Questions
+            ...questions.flatMap((q: any, index: number) => [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `${index + 1}. `, bold: true }),
+                  new TextRun({ text: q.question }),
+                ],
+              }),
+              new Paragraph({ text: "" }), // Space for image
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "Answer: ", bold: true }),
+                ],
+              }),
+              new Paragraph({
+                text: "_".repeat(80),
+              }),
+              new Paragraph({ text: "" }), // Empty line between questions
+            ]),
+            
+            // Footer
+            new Paragraph({ text: "" }),
+            new Paragraph({
+              text: "PREPARED BY: _______________     CHECKED BY: _______________",
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }],
+      });
+
+      const buffer = await Packer.toBuffer(doc);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename=exam-paper-${Date.now()}.docx`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      res.status(500).json({ error: "Failed to generate Word document" });
     }
   });
 
