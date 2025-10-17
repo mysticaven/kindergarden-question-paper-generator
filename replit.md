@@ -2,14 +2,15 @@
 
 ## Overview
 
-This is a web application designed to help educators create engaging kindergarten question papers with AI-generated content. The system allows teachers to input curriculum details, select question types, and automatically generate age-appropriate questions (for ages 4-6) with accompanying images. The application features a multi-step workflow from curriculum input to PDF export, with customizable exam paper headers including school branding.
+This is a web application designed to help educators create engaging kindergarten question papers with template-based content generation. The system allows teachers to input curriculum details, select question types, and automatically generate age-appropriate questions (for ages 4-6) with accompanying images. The application features a multi-step workflow from curriculum input to PDF/Word export, with customizable exam paper headers including school branding - all without using paid APIs.
 
 The core functionality centers around:
-- AI-powered question generation based on curriculum input
-- Automatic image generation for visual learning
+- Template-based question generation with authentic kindergarten question patterns
+- Custom image upload functionality for visual learning
 - Multiple question types (counting, comparison, colors, shapes, numbers, patterns)
-- Customizable exam paper templates with school branding
-- PDF export and print capabilities
+- Customizable exam paper templates matching real kindergarten worksheets
+- PDF and Word document export capabilities
+- Professional header fields (Academic Session, Class/Division, Topic, etc.)
 
 ## User Preferences
 
@@ -51,7 +52,9 @@ Preferred communication style: Simple, everyday language.
 **Server Framework**: Express.js with TypeScript
 
 **API Design**: RESTful API endpoints
-- `/api/generate-questions` - Main endpoint for question generation
+- `/api/generate-questions` - Main endpoint for template-based question generation
+- `/api/upload-image` - Custom image upload for questions
+- `/api/export-word` - Word document export
 
 **Development Server**: Vite middleware integration for HMR in development
 
@@ -68,11 +71,11 @@ Preferred communication style: Simple, everyday language.
 
 ### External Dependencies
 
-**AI Services**:
-- OpenAI GPT-4o for question generation
-- Configured for creating age-appropriate kindergarten content
-- Uses structured JSON responses for question data
-- Image generation prompts included in question structure (not yet implemented)
+**Question Generation**:
+- Template-based system using predefined kindergarten question patterns
+- No paid APIs required - completely free to use
+- Authentic question formats matching real kindergarten worksheets (Q. prefix, "Circle the...", "Match the...", "Fill in the blanks")
+- Uses Picsum Photos for placeholder images (free service)
 
 **Key Libraries**:
 - `@tanstack/react-query` - Server state management
@@ -81,7 +84,8 @@ Preferred communication style: Simple, everyday language.
 - `react-hook-form` with `@hookform/resolvers` - Form handling
 - `wouter` - Lightweight routing
 - `date-fns` - Date manipulation
-- `cmdk` - Command menu component
+- `multer` - File upload handling for custom images
+- `docx` - Word document generation
 
 **UI Component Libraries**:
 - Radix UI primitives (@radix-ui/*) - Accessible component primitives
@@ -105,10 +109,24 @@ Preferred communication style: Simple, everyday language.
 
 2. **Monorepo Structure**: Shared schema definitions between client and server in `/shared` directory, enabling type-safe API contracts.
 
-3. **AI-First Generation**: OpenAI integration is central to the application, handling both question text generation and image prompt creation (image generation to be implemented).
+3. **Free Template-Based Generation**: No paid APIs required. Uses predefined templates with authentic kindergarten question patterns based on real worksheets. Picsum Photos provides free placeholder images.
 
-4. **Progressive Enhancement**: Multi-step form workflow (curriculum → question types → exam details → generation → preview) with state management at component level.
+4. **Custom Image Upload**: Multer-based file upload system with validation (5MB limit, image types only). Uses shared `apiUpload` helper for consistent networking.
 
-5. **Print-Optimized Output**: PDF preview component designed for direct browser printing with print-specific CSS styling.
+5. **Dual Export Formats**: Both PDF (browser print) and Word document export using the `docx` library. Headers and formatting match professional kindergarten worksheets.
 
-6. **Theme System**: Comprehensive CSS variable-based theming supporting both educational (playful) and professional aesthetics with full light/dark mode support.
+6. **Authentic Question Paper Format**: Headers include all standard fields from real kindergarten worksheets (Academic Session, Class/Division, Topic, School Name, Logo, etc.). Questions use authentic patterns like "Q. Circle the...", "Match the following...", "Fill in the blanks...".
+
+7. **Progressive Enhancement**: Multi-step form workflow (curriculum → question types → exam details → generation → preview) with state management at component level.
+
+8. **Print-Optimized Output**: PDF preview component designed for direct browser printing with print-specific CSS styling.
+
+9. **Theme System**: Comprehensive CSS variable-based theming supporting both educational (playful) and professional aesthetics with full light/dark mode support.
+
+## Recent Updates (October 2025)
+
+- **Migrated from OpenAI to free templates**: Removed all paid API dependencies. Now uses predefined question templates that match real kindergarten worksheet patterns.
+- **Added image upload feature**: Teachers can upload custom images for any question using the Upload button on question cards.
+- **Added Word export**: Questions can now be exported to both PDF (via print) and Word document (.docx) format.
+- **Enhanced header fields**: Added Academic Session, Class/Division, and Topic fields to match authentic kindergarten worksheet formats.
+- **Improved question templates**: Questions now use professional patterns from real kindergarten papers (Q. prefix, Circle/Match/Fill instructions).
