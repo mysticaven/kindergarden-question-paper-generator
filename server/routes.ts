@@ -2,11 +2,95 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateQuestionsSchema } from "@shared/schema";
-import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Free question templates for kindergarten
+const questionTemplates = {
+  counting: [
+    { question: "Count the apples. How many apples are there?", imagePrompt: "apples", answer: "5" },
+    { question: "How many flowers do you see?", imagePrompt: "flowers", answer: "3" },
+    { question: "Count the stars. How many stars are there?", imagePrompt: "stars", answer: "4" },
+    { question: "How many balloons are in the picture?", imagePrompt: "balloons", answer: "6" },
+    { question: "Count the butterflies. How many do you see?", imagePrompt: "butterflies", answer: "7" },
+  ],
+  comparison: [
+    { question: "Which group has more items - the cats or the dogs?", imagePrompt: "cats and dogs", answer: "cats" },
+    { question: "Circle the bigger object.", imagePrompt: "big and small objects", answer: "varies" },
+    { question: "Which tree is taller?", imagePrompt: "two trees", answer: "left tree" },
+    { question: "Point to the smaller ball.", imagePrompt: "two balls", answer: "right ball" },
+    { question: "Which box has fewer toys?", imagePrompt: "boxes with toys", answer: "left box" },
+  ],
+  colors: [
+    { question: "What color is the sun?", imagePrompt: "sun", answer: "yellow" },
+    { question: "Find and color all the red objects.", imagePrompt: "objects to color", answer: "red items" },
+    { question: "What color is the sky?", imagePrompt: "sky", answer: "blue" },
+    { question: "Circle all the green items.", imagePrompt: "various colored items", answer: "green items" },
+    { question: "What color are the leaves?", imagePrompt: "tree with leaves", answer: "green" },
+  ],
+  shapes: [
+    { question: "How many circles can you find?", imagePrompt: "circles", answer: "4" },
+    { question: "Draw a square in the box below.", imagePrompt: "empty box", answer: "square drawn" },
+    { question: "Which shape is a triangle?", imagePrompt: "various shapes", answer: "triangle" },
+    { question: "Count the rectangles.", imagePrompt: "rectangles", answer: "3" },
+    { question: "Circle all the star shapes.", imagePrompt: "mixed shapes", answer: "stars" },
+  ],
+  numbers: [
+    { question: "Circle the number 5.", imagePrompt: "numbers 1-10", answer: "5" },
+    { question: "Write the number that comes after 3.", imagePrompt: "number line", answer: "4" },
+    { question: "What number is this? (showing 7)", imagePrompt: "number 7", answer: "7" },
+    { question: "Count and write the number.", imagePrompt: "objects to count", answer: "varies" },
+    { question: "Which number is bigger: 2 or 6?", imagePrompt: "numbers 2 and 6", answer: "6" },
+  ],
+  patterns: [
+    { question: "What comes next in the pattern? (red, blue, red, blue, ___)", imagePrompt: "color pattern", answer: "red" },
+    { question: "Complete the pattern: (circle, square, circle, square, ___)", imagePrompt: "shape pattern", answer: "circle" },
+    { question: "What shape comes next? (triangle, circle, triangle, ___)", imagePrompt: "pattern sequence", answer: "circle" },
+    { question: "Continue the number pattern: 1, 2, 3, ___", imagePrompt: "number pattern", answer: "4" },
+    { question: "What's missing in the pattern? (star, moon, star, ___, star)", imagePrompt: "celestial pattern", answer: "moon" },
+  ],
+};
+
+// Free placeholder images using placeholder services
+function getPlaceholderImage(type: string, prompt: string): string {
+  // Using a free placeholder image service with educational themes
+  const seed = encodeURIComponent(prompt);
+  const colors = {
+    counting: "FFB6C1,87CEEB",
+    comparison: "98FB98,DDA0DD", 
+    colors: "FFD700,FF69B4",
+    shapes: "87CEEB,FFB6C1",
+    numbers: "F0E68C,DDA0DD",
+    patterns: "E0BBE4,FFDAB9",
+  };
+  
+  const colorScheme = colors[type as keyof typeof colors] || "FFB6C1,87CEEB";
+  
+  // Using Picsum Photos with a seed for consistent images
+  return `https://picsum.photos/seed/${seed}/400/400`;
+}
+
+function generateQuestionsFromTemplates(
+  questionTypes: string[],
+  questionCount: number,
+  curriculum: string
+): Array<{ id: string; type: string; question: string; imageUrl: string }> {
+  const questions: Array<{ id: string; type: string; question: string; imageUrl: string }> = [];
+  const typesPool = questionTypes.length > 0 ? questionTypes : Object.keys(questionTemplates);
+  
+  for (let i = 0; i < questionCount; i++) {
+    const type = typesPool[i % typesPool.length];
+    const templates = questionTemplates[type as keyof typeof questionTemplates] || questionTemplates.counting;
+    const template = templates[i % templates.length];
+    
+    questions.push({
+      id: `q-${i + 1}`,
+      type: type,
+      question: template.question,
+      imageUrl: getPlaceholderImage(type, template.imagePrompt + i),
+    });
+  }
+  
+  return questions;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -16,76 +100,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { curriculum, questionTypes, questionCount, examDetails } = validatedData;
       
-      // Generate questions using OpenAI
-      const questionsPrompt = `You are a kindergarten teacher creating an exam paper. 
-Generate ${questionCount} questions based on this curriculum:
-${curriculum}
-
-Question types to include: ${questionTypes.join(", ")}
-
-For each question:
-1. Make it age-appropriate for kindergarten (ages 4-6)
-2. Keep language simple and clear
-3. Make it engaging and fun
-4. Include a brief description of what image should accompany it
-
-Return a JSON array of questions with this format:
-[
-  {
-    "type": "counting|comparison|colors|shapes|numbers|patterns",
-    "question": "The question text",
-    "imagePrompt": "Detailed prompt for generating an image for this question (describe what should be in the image, e.g., '5 red apples arranged on a white background')"
-  }
-]
-
-Important: Return ONLY the JSON array, no other text.`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful kindergarten teacher assistant that creates educational content. Always respond with valid JSON only."
-          },
-          {
-            role: "user",
-            content: questionsPrompt
-          }
-        ],
-        temperature: 0.8,
-      });
-
-      const questionsText = completion.choices[0].message.content || "[]";
-      let generatedQuestions = JSON.parse(questionsText);
-
-      // Generate images for each question using DALL-E
-      const questionsWithImages = await Promise.all(
-        generatedQuestions.map(async (q: any, index: number) => {
-          try {
-            const imageResponse = await openai.images.generate({
-              model: "dall-e-3",
-              prompt: `Create a simple, colorful, child-friendly illustration for a kindergarten worksheet: ${q.imagePrompt}. Style: Clean, bright colors, simple shapes, educational, suitable for young children. No text in the image.`,
-              size: "1024x1024",
-              quality: "standard",
-              n: 1,
-            });
-
-            return {
-              id: `q-${index + 1}`,
-              type: q.type,
-              question: q.question,
-              imageUrl: imageResponse.data?.[0]?.url,
-            };
-          } catch (error) {
-            console.error(`Error generating image for question ${index + 1}:`, error);
-            return {
-              id: `q-${index + 1}`,
-              type: q.type,
-              question: q.question,
-              imageUrl: undefined,
-            };
-          }
-        })
+      // Generate questions using free templates
+      const questionsWithImages = generateQuestionsFromTemplates(
+        questionTypes,
+        questionCount,
+        curriculum
       );
 
       const questionPaper = {
@@ -98,22 +117,6 @@ Important: Return ONLY the JSON array, no other text.`;
       res.json(saved);
     } catch (error: any) {
       console.error("Error generating questions:", error);
-      
-      // Check for OpenAI quota/rate limit errors
-      if (error?.status === 429 || error?.code === 'insufficient_quota' || error?.message?.includes('quota')) {
-        return res.status(429).json({ 
-          error: "OpenAI API quota exceeded",
-          details: "Your OpenAI API key has insufficient quota or credits. Please check your OpenAI account billing at https://platform.openai.com/account/billing"
-        });
-      }
-
-      // Check for authentication errors
-      if (error?.status === 401 || error?.code === 'invalid_api_key') {
-        return res.status(401).json({ 
-          error: "Invalid OpenAI API key",
-          details: "Please check your OPENAI_API_KEY environment variable"
-        });
-      }
       
       res.status(500).json({ 
         error: "Failed to generate questions",
