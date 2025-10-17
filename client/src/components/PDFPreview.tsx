@@ -112,6 +112,9 @@ export default function PDFPreview({ questions, examDetails }: PDFPreviewProps) 
                 {examDetails.schoolAddress && (
                   <p className="text-sm mb-2">{examDetails.schoolAddress}</p>
                 )}
+                {examDetails.academicSession && (
+                  <p className="text-sm mb-2">Academic Session: {examDetails.academicSession}</p>
+                )}
                 <div className="mt-3">
                   {examDetails.grade && (
                     <p className="text-base font-semibold uppercase">{examDetails.grade}</p>
@@ -131,29 +134,43 @@ export default function PDFPreview({ questions, examDetails }: PDFPreviewProps) 
           <div className="space-y-3 mb-8">
             {examDetails.includeStudentName && (
               <div className="flex items-center gap-2">
-                <span className="font-semibold min-w-[80px]">Name:</span>
+                <span className="font-semibold min-w-[100px]">NAME:</span>
                 <div className="flex-1 border-b-2 border-black border-dotted h-8"></div>
               </div>
             )}
             
             <div className="grid grid-cols-2 gap-4">
-              {examDetails.includeSchool && (
+              {examDetails.classDiv && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold min-w-[80px]">School:</span>
-                  <div className="flex-1 border-b-2 border-black border-dotted h-8"></div>
+                  <span className="font-semibold min-w-[100px]">CLASS:</span>
+                  <span>{examDetails.classDiv}</span>
                 </div>
               )}
               {examDetails.includeDate && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold min-w-[80px]">Date:</span>
+                  <span className="font-semibold min-w-[100px]">DATE:</span>
                   <div className="flex-1 border-b-2 border-black border-dotted h-8"></div>
                 </div>
               )}
             </div>
 
+            {examDetails.includeSchool && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold min-w-[100px]">SCHOOL:</span>
+                <div className="flex-1 border-b-2 border-black border-dotted h-8"></div>
+              </div>
+            )}
+
+            {examDetails.topic && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold min-w-[100px]">TOPIC:</span>
+                <span>{examDetails.topic}</span>
+              </div>
+            )}
+
             {examDetails.includeTeacher && (
               <div className="flex items-center gap-2">
-                <span className="font-semibold min-w-[80px]">Teacher:</span>
+                <span className="font-semibold min-w-[100px]">TEACHER:</span>
                 <div className="flex-1 border-b-2 border-black border-dotted h-8"></div>
               </div>
             )}

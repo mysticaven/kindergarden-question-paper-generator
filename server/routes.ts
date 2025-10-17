@@ -43,49 +43,49 @@ const upload = multer({
   }
 });
 
-// Free question templates for kindergarten
+// Free question templates for kindergarten (authentic patterns from real worksheets)
 const questionTemplates = {
   counting: [
-    { question: "Count the apples. How many apples are there?", imagePrompt: "apples", answer: "5" },
-    { question: "How many flowers do you see?", imagePrompt: "flowers", answer: "3" },
-    { question: "Count the stars. How many stars are there?", imagePrompt: "stars", answer: "4" },
-    { question: "How many balloons are in the picture?", imagePrompt: "balloons", answer: "6" },
-    { question: "Count the butterflies. How many do you see?", imagePrompt: "butterflies", answer: "7" },
+    { question: "Q. Count the apples and write the number.", imagePrompt: "5 apples", answer: "5" },
+    { question: "Q. How many flowers do you see? Circle the correct number.", imagePrompt: "3 flowers with numbers", answer: "3" },
+    { question: "Q. Count the stars. Write the number in the box.", imagePrompt: "4 stars with empty box", answer: "4" },
+    { question: "Q. Circle the group that has 6 balloons.", imagePrompt: "groups of balloons", answer: "6" },
+    { question: "Q. Count and match: How many butterflies?", imagePrompt: "butterflies to count", answer: "7" },
   ],
   comparison: [
-    { question: "Which group has more items - the cats or the dogs?", imagePrompt: "cats and dogs", answer: "cats" },
-    { question: "Circle the bigger object.", imagePrompt: "big and small objects", answer: "varies" },
-    { question: "Which tree is taller?", imagePrompt: "two trees", answer: "left tree" },
-    { question: "Point to the smaller ball.", imagePrompt: "two balls", answer: "right ball" },
-    { question: "Which box has fewer toys?", imagePrompt: "boxes with toys", answer: "left box" },
+    { question: "Q. Circle the bigger object.", imagePrompt: "big and small objects", answer: "bigger" },
+    { question: "Q. Which tree is taller? Put a tick (✓) mark.", imagePrompt: "two trees", answer: "taller tree" },
+    { question: "Q. Circle the group with more items.", imagePrompt: "two groups of items", answer: "more" },
+    { question: "Q. Which is smaller? Color it.", imagePrompt: "two balls", answer: "smaller" },
+    { question: "Q. Match the big items with big box and small items with small box.", imagePrompt: "items and boxes", answer: "matching" },
   ],
   colors: [
-    { question: "What color is the sun?", imagePrompt: "sun", answer: "yellow" },
-    { question: "Find and color all the red objects.", imagePrompt: "objects to color", answer: "red items" },
-    { question: "What color is the sky?", imagePrompt: "sky", answer: "blue" },
-    { question: "Circle all the green items.", imagePrompt: "various colored items", answer: "green items" },
-    { question: "What color are the leaves?", imagePrompt: "tree with leaves", answer: "green" },
+    { question: "Q. Identify and circle the vowels.", imagePrompt: "letters a e i o u with consonants", answer: "vowels" },
+    { question: "Q. Color all the red objects.", imagePrompt: "objects to color", answer: "red items" },
+    { question: "Q. What color is the sun? Circle the correct answer.", imagePrompt: "sun with color options", answer: "yellow" },
+    { question: "Q. Match the objects with their colors.", imagePrompt: "objects and colors", answer: "matching" },
+    { question: "Q. Circle all the green items in the picture.", imagePrompt: "various colored items", answer: "green" },
   ],
   shapes: [
-    { question: "How many circles can you find?", imagePrompt: "circles", answer: "4" },
-    { question: "Draw a square in the box below.", imagePrompt: "empty box", answer: "square drawn" },
-    { question: "Which shape is a triangle?", imagePrompt: "various shapes", answer: "triangle" },
-    { question: "Count the rectangles.", imagePrompt: "rectangles", answer: "3" },
-    { question: "Circle all the star shapes.", imagePrompt: "mixed shapes", answer: "stars" },
+    { question: "Q. Circle all the circles you can find.", imagePrompt: "mixed shapes", answer: "circles" },
+    { question: "Q. Match the shapes: Circle with circle, square with square.", imagePrompt: "shapes to match", answer: "matching" },
+    { question: "Q. Which shape is a triangle? Put a tick (✓) mark.", imagePrompt: "various shapes", answer: "triangle" },
+    { question: "Q. Count the rectangles and write the number.", imagePrompt: "rectangles", answer: "count" },
+    { question: "Q. Draw a square in the box below.", imagePrompt: "empty box", answer: "drawing" },
   ],
   numbers: [
-    { question: "Circle the number 5.", imagePrompt: "numbers 1-10", answer: "5" },
-    { question: "Write the number that comes after 3.", imagePrompt: "number line", answer: "4" },
-    { question: "What number is this? (showing 7)", imagePrompt: "number 7", answer: "7" },
-    { question: "Count and write the number.", imagePrompt: "objects to count", answer: "varies" },
-    { question: "Which number is bigger: 2 or 6?", imagePrompt: "numbers 2 and 6", answer: "6" },
+    { question: "Q. Fill in the missing small letters and capital letters in the correct order.\nPp ____ ____ Ss ____ ____ Uu", imagePrompt: "alphabet sequence", answer: "Qq Rr Tt" },
+    { question: "Q. Write the number that comes after 3.", imagePrompt: "number line", answer: "4" },
+    { question: "Q. Circle the number 5 in the given numbers.", imagePrompt: "numbers 1-10", answer: "5" },
+    { question: "Q. Match the following: Connect the dots to numbers.", imagePrompt: "dots and numbers", answer: "matching" },
+    { question: "Q. Which number is bigger: 2 or 6? Circle it.", imagePrompt: "numbers 2 and 6", answer: "6" },
   ],
   patterns: [
-    { question: "What comes next in the pattern? (red, blue, red, blue, ___)", imagePrompt: "color pattern", answer: "red" },
-    { question: "Complete the pattern: (circle, square, circle, square, ___)", imagePrompt: "shape pattern", answer: "circle" },
-    { question: "What shape comes next? (triangle, circle, triangle, ___)", imagePrompt: "pattern sequence", answer: "circle" },
-    { question: "Continue the number pattern: 1, 2, 3, ___", imagePrompt: "number pattern", answer: "4" },
-    { question: "What's missing in the pattern? (star, moon, star, ___, star)", imagePrompt: "celestial pattern", answer: "moon" },
+    { question: "Q. What comes next in the pattern? (red, blue, red, blue, ____)", imagePrompt: "color pattern", answer: "red" },
+    { question: "Q. Complete the pattern: (circle, square, circle, square, ____)", imagePrompt: "shape pattern", answer: "circle" },
+    { question: "Q. Fill in the missing shape: (triangle, circle, triangle, ____, triangle)", imagePrompt: "pattern sequence", answer: "circle" },
+    { question: "Q. Continue the number pattern: 1, 2, 3, ____", imagePrompt: "number pattern", answer: "4" },
+    { question: "Q. Match the following: Connect body parts to faces.", imagePrompt: "body parts matching", answer: "matching" },
   ],
 };
 
@@ -247,15 +247,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               text: examDetails.schoolAddress,
               alignment: AlignmentType.CENTER,
             }) : new Paragraph({ text: "" }),
+            examDetails.academicSession ? new Paragraph({
+              text: `Academic Session: ${examDetails.academicSession}`,
+              alignment: AlignmentType.CENTER,
+            }) : new Paragraph({ text: "" }),
+            examDetails.grade ? new Paragraph({
+              text: examDetails.grade,
+              alignment: AlignmentType.CENTER,
+            }) : new Paragraph({ text: "" }),
             new Paragraph({
               text: examDetails.examTitle || "Exam Title",
               heading: HeadingLevel.HEADING_2,
               alignment: AlignmentType.CENTER,
             }),
-            examDetails.grade ? new Paragraph({
-              text: examDetails.grade,
-              alignment: AlignmentType.CENTER,
-            }) : new Paragraph({ text: "" }),
             examDetails.subject ? new Paragraph({
               text: examDetails.subject,
               alignment: AlignmentType.CENTER,
@@ -265,14 +269,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Student info
             examDetails.includeStudentName ? new Paragraph({
               children: [
-                new TextRun({ text: "Name: ", bold: true }),
+                new TextRun({ text: "NAME: ", bold: true }),
                 new TextRun({ text: "_".repeat(50) }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            examDetails.classDiv ? new Paragraph({
+              children: [
+                new TextRun({ text: "CLASS: ", bold: true }),
+                new TextRun({ text: examDetails.classDiv }),
               ],
             }) : new Paragraph({ text: "" }),
             examDetails.includeDate ? new Paragraph({
               children: [
-                new TextRun({ text: "Date: ", bold: true }),
+                new TextRun({ text: "DATE: ", bold: true }),
                 new TextRun({ text: "_".repeat(30) }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            examDetails.includeSchool ? new Paragraph({
+              children: [
+                new TextRun({ text: "SCHOOL: ", bold: true }),
+                new TextRun({ text: "_".repeat(50) }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            examDetails.topic ? new Paragraph({
+              children: [
+                new TextRun({ text: "TOPIC: ", bold: true }),
+                new TextRun({ text: examDetails.topic }),
+              ],
+            }) : new Paragraph({ text: "" }),
+            examDetails.includeTeacher ? new Paragraph({
+              children: [
+                new TextRun({ text: "TEACHER: ", bold: true }),
+                new TextRun({ text: "_".repeat(50) }),
               ],
             }) : new Paragraph({ text: "" }),
             new Paragraph({ text: "" }), // Empty line

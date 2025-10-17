@@ -60,10 +60,21 @@ export default function ExamDetailsForm({ details, onChange }: ExamDetailsFormPr
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="examTitle">Exam Title *</Label>
+          <Label htmlFor="academicSession">Academic Session</Label>
+          <Input
+            id="academicSession"
+            placeholder="e.g., 2024-2025"
+            value={details.academicSession || ""}
+            onChange={(e) => onChange({ ...details, academicSession: e.target.value })}
+            data-testid="input-academic-session"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="examTitle">Exam/Worksheet Title *</Label>
           <Input
             id="examTitle"
-            placeholder="e.g., Monthly Examination"
+            placeholder="e.g., Monthly Examination, English Revision Worksheet"
             value={details.examTitle}
             onChange={(e) => onChange({ ...details, examTitle: e.target.value })}
             data-testid="input-exam-title"
@@ -71,10 +82,32 @@ export default function ExamDetailsForm({ details, onChange }: ExamDetailsFormPr
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="grade">Grade/Class</Label>
+          <Input
+            id="grade"
+            placeholder="e.g., Kindergarten, KG-1"
+            value={details.grade || ""}
+            onChange={(e) => onChange({ ...details, grade: e.target.value })}
+            data-testid="input-grade"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="classDiv">Class/Division</Label>
+          <Input
+            id="classDiv"
+            placeholder="e.g., KG-1/Div.A, SR KG"
+            value={details.classDiv || ""}
+            onChange={(e) => onChange({ ...details, classDiv: e.target.value })}
+            data-testid="input-class-div"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="subject">Subject</Label>
           <Input
             id="subject"
-            placeholder="e.g., Mathematics, Science"
+            placeholder="e.g., Mathematics, English, General Knowledge"
             value={details.subject || ""}
             onChange={(e) => onChange({ ...details, subject: e.target.value })}
             data-testid="input-subject"
@@ -82,13 +115,13 @@ export default function ExamDetailsForm({ details, onChange }: ExamDetailsFormPr
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="grade">Grade/Class</Label>
+          <Label htmlFor="topic">Topic</Label>
           <Input
-            id="grade"
-            placeholder="e.g., Kindergarten, KG 1 & 2"
-            value={details.grade || ""}
-            onChange={(e) => onChange({ ...details, grade: e.target.value })}
-            data-testid="input-grade"
+            id="topic"
+            placeholder="e.g., Revision, Numbers, Shapes & Colors"
+            value={details.topic || ""}
+            onChange={(e) => onChange({ ...details, topic: e.target.value })}
+            data-testid="input-topic"
           />
         </div>
 

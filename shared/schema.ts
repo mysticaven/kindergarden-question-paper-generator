@@ -21,9 +21,12 @@ export type User = typeof users.$inferSelect;
 export const examDetailsSchema = z.object({
   schoolName: z.string().min(1, "School name is required"),
   schoolAddress: z.string().optional(),
+  academicSession: z.string().optional(),
   examTitle: z.string().min(1, "Exam title is required"),
   subject: z.string().optional(),
+  topic: z.string().optional(),
   grade: z.string().optional(),
+  classDiv: z.string().optional(),
   logoUrl: z.string().optional(),
   includeStudentName: z.boolean().default(true),
   includeDate: z.boolean().default(true),
